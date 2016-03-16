@@ -19,10 +19,10 @@ function updateLength(delay) {
 }
 
 const initialState = {
-    delay: 1000,
+    delay: 500,
     running: false,
     stars: [],
-    maxStars: 5
+    maxStars: 27
 };
 
 function beepoApp(state, action) {
@@ -49,8 +49,7 @@ function beepoApp(state, action) {
                 running: false
             });
         case PRESSED_THE_BUTTON:
-            newStars = state.stars.map((s) => {return s});
-            console.log(newStars);
+            newStars = state.stars.map((s) => (s));
             if (newStars.length) {
                 newStars.pop();
                 newStars.push(true);
@@ -59,11 +58,8 @@ function beepoApp(state, action) {
                 stars: newStars
             });
         case BEEPED:
-            console.log(state.stars);
-            newStars = state.stars.map((s) => {return s});
-            console.log(newStars);
+            newStars = state.stars.map((s) => (s));
             newStars.push(false);
-            console.log(newStars);
             return Object.assign({}, state, {
                 stars: newStars
             });
@@ -76,8 +72,6 @@ function beepoApp(state, action) {
 
 window.store = Redux.createStore(beepoApp);
 var store = window.store;
-
-console.log(store.getState());
 
 store.subscribe(() =>
     console.log("New state:", store.getState())
@@ -113,11 +107,7 @@ var GameBox = React.createClass({
         return (
             <div className="row">
                 <div className="col-xs-8">
-                    <div className="row">
-                        <div className="col-xs-1"><ConnectedSmile/></div>
-                        <div className="col-xs-11">
-                        </div>
-                    </div>
+                    <ConnectedStarsBunch/>
                 </div>
                 <div className="col-xs-4">
                     <ControlForm/>
@@ -126,6 +116,27 @@ var GameBox = React.createClass({
         );
     }
 });
+
+const Star = ({good}) => {
+    if (good) {
+        return (<div className="star star-good"></div>);
+    } else {
+        return (<div className="star star-bad"></div>);
+    }
+};
+
+const StarsBunch = ({stars, maxStars}) => {
+    var newStars = stars.map((s) => (s));
+    while (newStars.length < maxStars) {
+        newStars.push(false);
+    }
+    return (<div>{newStars.map(good => <Star good={good}/>)}</div>);
+};
+
+const ConnectedStarsBunch = ReactRedux.connect((state) => {
+    return {stars: state.stars, maxStars: state.maxStars}
+})(StarsBunch);
+
 
 const Smile = ({show}) => {
     if (show) {

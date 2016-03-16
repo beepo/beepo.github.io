@@ -1,11 +1,13 @@
 const UPDATE_LENGTH = 'UPDATE_LENGTH';
 const START_GAME = 'START_GAME';
 const STOP_GAME = 'STOP_GAME';
+const PRESSED_THE_BUTTON = 'PRESSED_THE_BUTTON';
 const SOUND_500hz_2s = '/audiocheck.net_sin_500Hz_-3dBFS_2s.wav';
 const SOUND_1000hz_01s = '/audiocheck.net_sin_1000Hz_-3dBFS_0.1s.wav';
 
 var startGame = () => {return {type: START_GAME}};
 var stopGame = () => {return {type: STOP_GAME}};
+var pressedTheButton = () => {return {type: PRESSED_THE_BUTTON, date: new Date()}};
 
 function updateLength(delay) {
     return {
@@ -16,7 +18,8 @@ function updateLength(delay) {
 
 const initialState = {
     delay: 1000,
-    running: false
+    running: false,
+    lastButtonPressed: null
 };
 
 function beepoApp(state, action) {
@@ -39,6 +42,10 @@ function beepoApp(state, action) {
         case STOP_GAME:
             return Object.assign({}, state, {
                 running: false
+            });
+        case PRESSED_THE_BUTTON:
+            return Object.assign({}, state, {
+                lastButtonPressed: action.date
             });
         default:
             return state;
@@ -68,8 +75,13 @@ var beep = () => {
     }
     setTimeout(beep, state.delay > 100 ? state.delay : 100);
 };
-
 beep();
+
+document.addEventListener("keydown", (event) => {
+    if (event.keyCode == 32 || event.keyCode == 13) {
+        store.dispatch(pressedTheButton());
+    }
+});
 
 var GameBox = React.createClass({
     render: function () {

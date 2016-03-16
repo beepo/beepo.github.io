@@ -3,13 +3,15 @@ const START_GAME = 'START_GAME';
 const STOP_GAME = 'STOP_GAME';
 const PRESSED_THE_BUTTON = 'PRESSED_THE_BUTTON';
 const BEEPED = 'BEEPED';
+const CLEAR = 'CLEAR';
 const SOUND_500hz_2s = '/audiocheck.net_sin_500Hz_-3dBFS_2s.wav';
 const SOUND_1000hz_01s = '/audiocheck.net_sin_1000Hz_-3dBFS_0.1s.wav';
 
-var startGame = () => {return {type: START_GAME}};
-var stopGame = () => {return {type: STOP_GAME}};
-var beeped = () => {return {type: BEEPED}};
-var pressedTheButton = () => {return {type: PRESSED_THE_BUTTON, date: new Date()}};
+var startGame = () => ({type: START_GAME});
+var stopGame = () => ({type: STOP_GAME});
+var clear = () => ({type: CLEAR});
+var beeped = () => ({type: BEEPED});
+var pressedTheButton = () => ({type: PRESSED_THE_BUTTON});
 
 function updateLength(delay) {
     return {
@@ -30,6 +32,7 @@ function beepoApp(state, action) {
         return initialState
     }
     var newStars;
+    console.log(action);
 
     switch (action.type) {
         case UPDATE_LENGTH:
@@ -41,7 +44,10 @@ function beepoApp(state, action) {
             return state;
         case START_GAME:
             return Object.assign({}, state, {
-                running: true,
+                running: true
+            });
+        case CLEAR:
+            return Object.assign({}, state, {
                 stars: []
             });
         case STOP_GAME:
@@ -67,7 +73,6 @@ function beepoApp(state, action) {
             return state;
     }
 }
-
 
 
 window.store = Redux.createStore(beepoApp);
@@ -170,7 +175,7 @@ var ControlForm = React.createClass({
                     <input type="button"
                            className="btn btn-primary"
                            value="Start"
-                           onClick={e => {store.dispatch(startGame());}}/>
+                           onClick={e => {store.dispatch(clear()); store.dispatch(startGame());}}/>
                     <input type="button"
                            className="btn btn-default"
                            value="Stop"

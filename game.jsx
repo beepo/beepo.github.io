@@ -1,20 +1,22 @@
 const UPDATE_LENGTH = 'UPDATE_LENGTH';
+const START_GAME = 'START_GAME';
+const STOP_GAME = 'STOP_GAME';
+const SOUND_500hz_2s = '/audiocheck.net_sin_500Hz_-3dBFS_2s.wav';
+const SOUND_1000hz_01s = '/audiocheck.net_sin_1000Hz_-3dBFS_0.1s.wav';
 
-function updateLength(music, beep) {
+var startGame = () => {return {type: START_GAME}};
+var stopGame = () => {return {type: STOP_GAME}};
+
+function updateLength(delay) {
     return {
         type: UPDATE_LENGTH,
-        music: music,
-        beep: beep
+        delay: delay
     }
 }
 
-window.updateLength = updateLength;
-
 const initialState = {
-    length: {
-        music: 1,
-        beep: 0.1
-    }
+    delay: 500,
+    running: false
 };
 
 function beepoApp(state, action) {
@@ -24,16 +26,26 @@ function beepoApp(state, action) {
 
     switch (action.type) {
         case UPDATE_LENGTH:
+            if (action.delay > 0) {
+                return Object.assign({}, state, {
+                    delay: parseFloat(action.delay)
+                });
+            }
+            return state;
+        case START_GAME:
             return Object.assign({}, state, {
-                length: {
-                    music: action.music > 0 ? parseFloat(action.music) : 1,
-                    beep: action.beep > 0 ? parseFloat(action.beep) : 0.1
-                }
+                running: true
+            });
+        case STOP_GAME:
+            return Object.assign({}, state, {
+                running: false
             });
         default:
             return state;
     }
 }
+
+
 
 window.store = Redux.createStore(beepoApp);
 var store = window.store;
@@ -44,17 +56,26 @@ store.subscribe(() =>
     console.log("New state:", store.getState())
 );
 
+var musicIntervalId = null;
+var audio_1000hz_01s = new Audio(SOUND_1000hz_01s);
+
+var beep = () => {
+    var state = store.getState();
+    if (state.running) {
+        setTimeout(() => {
+            audio_1000hz_01s.play()
+        }, 13);
+    }
+    setTimeout(beep, state.delay > 100 ? state.delay : 100);
+};
+
+beep();
+
 var GameBox = React.createClass({
-    getInitialState: function () {
-        return {
-            musicLength: store.getState().length.music,
-            beepLength: store.getState().length.beep
-        };
-    },
     render: function () {
         return (
             <div className="row">
-                <div className="col-xs-8">Stuff</div>
+                <div className="col-xs-8"></div>
                 <div className="col-xs-4">
                     <ControlForm/>
                 </div>
@@ -65,29 +86,36 @@ var GameBox = React.createClass({
 
 var ControlForm = React.createClass({
     render: function () {
-        let musicInput, beepInput;
-        console.log("Rendering:", this);
-        console.log("with props:", this.props);
-
         return (
-            <form onSubmit={e => {
-                console.log("submit:", e);
-                e.preventDefault();
-                store.dispatch(updateLength(musicInput.value, beepInput.value));
-            }}>
+            <form>
                 <div className="form-group">
-                    <label for="musicLength">Delay between 'beeps'</label>
-                    <input ref={node => {musicInput=node; node.value = store.getState().length.music}} type="number" className="form-control" id="musicLength" placeholder="Seconds" inputmode="numeric" step="1" min="0"/>
+                    <label for="delay">Delay between 'beeps'</label>
+                    <input onChange={e => {store.dispatch(updateLength(e.target.value));}}
+                           type="number"
+                           className="form-control"
+                           id="delay"
+                           placeholder="Milliseconds"
+                           inputmode="numeric"
+                           step="100"
+                           value={this.props.delay}
+                           min="100"/>
                 </div>
-                <div className="form-group">
-                    <label for="beepLength">Length of 'beep' sound</label>
-                    <input ref={node => {beepInput=node; node.value = store.getState().length.beep}} type="number" className="form-control" id="beepLength" placeholder="Seconds" inputmode="numeric" step="0.1" min="0"/>
+                <div className="btn-group" role="group">
+                    <input type="button"
+                           className="btn btn-primary"
+                           value="Start"
+                           onClick={e => {store.dispatch(startGame());}}/>
+                    <input type="button"
+                           className="btn btn-default"
+                           value="Stop"
+                           onClick={e => {store.dispatch(stopGame());}}/>
                 </div>
-                <input type="submit" className="btn btn-default" value="Start"/>
             </form>
         );
     }
 });
+
+ControlForm = ReactRedux.connect((state) => {return {delay: state.delay}})(ControlForm);
 
 ReactDOM.render(
     <ReactRedux.Provider store={store}><GameBox/></ReactRedux.Provider>,

@@ -15,7 +15,7 @@ function updateLength(delay) {
 }
 
 const initialState = {
-    delay: 500,
+    delay: 1000,
     running: false
 };
 

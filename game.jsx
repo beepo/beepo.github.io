@@ -92,7 +92,7 @@ var beep = () => {
         if (state.stars.length < state.maxStars) {
             var audio = new Audio(SOUND_1000hz_01s);
             audio.play();
-            setTimeout(beep, state.delay > 100 ? state.delay + 100 : 100);
+            setTimeout(beep, state.delay > 100 ? state.delay + 150 : 100);
             //var checkInterval = setInterval(() => {
             //    if (audio.ended) {
             //        setTimeout(beep, state.delay > 100 ? state.delay : 100);

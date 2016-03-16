@@ -183,12 +183,25 @@ const Reward = ({show}) => {
     return (<div></div>);
 };
 
-const ConnectedReward = ReactRedux.connect((state) => {return {show: state.stars.length == state.maxStars && !state.running }})(Reward);
+const ConnectedReward = ReactRedux.connect((state) => {return {show: state.stars.length >= state.maxStars && !state.running }})(Reward);
+
+var blurActive = () => {
+    if (document.activeElement) {
+        try {
+            document.activeElement.blur();
+        } catch (e) {}
+    }
+};
 
 var ControlForm = React.createClass({
     render: function () {
         return (
-            <form>
+            <form onSubmit={(e) => {
+                e.preventDefault();
+                blurActive();
+                store.dispatch(clear());
+                store.dispatch(startGame());
+            }}>
                 <div className="form-group">
                     <label for="delay">Delay between 'beeps'</label>
                     <input onChange={e => {store.dispatch(updateLength(e.target.value));}}
@@ -205,11 +218,11 @@ var ControlForm = React.createClass({
                     <input type="button"
                            className="btn btn-primary"
                            value="Start"
-                           onClick={e => {e.target.blur(); store.dispatch(clear()); store.dispatch(startGame());}}/>
+                           onClick={e => {blurActive(); store.dispatch(clear()); store.dispatch(startGame());}}/>
                     <input type="button"
                            className="btn btn-default"
                            value="Stop"
-                           onClick={e => {e.target.blur(); store.dispatch(stopGame());}}/>
+                           onClick={e => {blurActive(); store.dispatch(stopGame());}}/>
                 </div>
             </form>
         );

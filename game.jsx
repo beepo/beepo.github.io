@@ -6,6 +6,7 @@ const BEEPED = 'BEEPED';
 const CLEAR = 'CLEAR';
 const SOUND_500hz_2s = '/audiocheck.net_sin_500Hz_-3dBFS_2s.wav';
 const SOUND_1000hz_01s = '/audiocheck.net_sin_1000Hz_-3dBFS_0.1s.mp3';
+const SOUND_HOOHOOHOO = '/Jolly Laugh-SoundBible.com-874430997.mp3';
 
 var startGame = () => ({type: START_GAME});
 var stopGame = () => ({type: STOP_GAME});
@@ -52,6 +53,10 @@ function beepoApp(state, action) {
                 stars: []
             });
         case STOP_GAME:
+            if (state.stars.length == state.maxStars) {
+                var audio = new Audio(SOUND_HOOHOOHOO);
+                audio.play();
+            }
             return Object.assign({}, state, {
                 running: false
             });
@@ -123,6 +128,7 @@ var GameBox = React.createClass({
                 </div>
                 <div className="col-xs-4">
                     <ControlForm/>
+                    <ConnectedReward/>
                 </div>
             </div>
         );
@@ -169,6 +175,15 @@ const Smile = ({show}) => {
 };
 
 const ConnectedSmile = ReactRedux.connect((state) => {return {show: state.stars.length ? state.stars[state.stars.length - 1] : undefined }})(Smile);
+
+const Reward = ({show}) => {
+    if (show) {
+        return (<div className="reward"></div>);
+    }
+    return (<div></div>);
+};
+
+const ConnectedReward = ReactRedux.connect((state) => {return {show: state.stars.length == state.maxStars && !state.running }})(Reward);
 
 var ControlForm = React.createClass({
     render: function () {

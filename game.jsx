@@ -5,7 +5,7 @@ const PRESSED_THE_BUTTON = 'PRESSED_THE_BUTTON';
 const BEEPED = 'BEEPED';
 const CLEAR = 'CLEAR';
 const SOUND_500hz_2s = '/audiocheck.net_sin_500Hz_-3dBFS_2s.wav';
-const SOUND_1000hz_01s = '/audiocheck.net_sin_1000Hz_-3dBFS_0.1s.wav';
+const SOUND_1000hz_01s = '/audiocheck.net_sin_1000Hz_-3dBFS_0.1s.mp3';
 
 var startGame = () => ({type: START_GAME});
 var stopGame = () => ({type: STOP_GAME});
@@ -43,6 +43,7 @@ function beepoApp(state, action) {
             }
             return state;
         case START_GAME:
+            setTimeout(beep, 2000);
             return Object.assign({}, state, {
                 running: true
             });
@@ -89,17 +90,23 @@ var beep = () => {
     var state = store.getState();
     if (state.running) {
         if (state.stars.length < state.maxStars) {
+            var audio = new Audio(SOUND_1000hz_01s);
+            audio.play();
+            setTimeout(beep, state.delay > 100 ? state.delay + 100 : 100);
+            //var checkInterval = setInterval(() => {
+            //    if (audio.ended) {
+            //        setTimeout(beep, state.delay > 100 ? state.delay : 100);
+            //        clearInterval(checkInterval);
+            //    }
+            //}, 25);
             setTimeout(() => {
-                audio_1000hz_01s.play()
-            }, 13);
-            store.dispatch(beeped());
+                store.dispatch(beeped());
+            }, 100);
         } else {
             store.dispatch(stopGame());
         }
     }
-    setTimeout(beep, state.delay > 100 ? state.delay : 100);
 };
-beep();
 
 document.addEventListener("keydown", (event) => {
     if (event.keyCode == 32 || event.keyCode == 13) {
@@ -122,25 +129,33 @@ var GameBox = React.createClass({
     }
 });
 
-const Star = ({good}) => {
+const Star = ({good, current}) => {
+    var klass = "star";
     if (good) {
-        return (<div className="star star-good"></div>);
+        klass += ' star-good';
     } else {
-        return (<div className="star star-bad"></div>);
+        klass += ' star-bad';
     }
+    if (current) {
+        klass += ' current';
+    }
+
+    return (<div className={klass}></div>);
 };
 
-const StarsBunch = ({stars, maxStars}) => {
+const StarsBunch = ({stars, maxStars, running}) => {
     var newStars = stars.map((s) => (s));
     while (newStars.length < maxStars) {
         newStars.push(false);
     }
-    return (<div>{newStars.map(good => <Star good={good}/>)}</div>);
+    return (<div>{newStars.map((good, index) => <Star good={good} current={index == stars.length-1 && running}/>)}</div>);
 };
 
-const ConnectedStarsBunch = ReactRedux.connect((state) => {
-    return {stars: state.stars, maxStars: state.maxStars}
-})(StarsBunch);
+const ConnectedStarsBunch = ReactRedux.connect((state) => ({
+    stars: state.stars,
+    maxStars: state.maxStars,
+    running: state.running
+}))(StarsBunch);
 
 
 const Smile = ({show}) => {
@@ -175,11 +190,11 @@ var ControlForm = React.createClass({
                     <input type="button"
                            className="btn btn-primary"
                            value="Start"
-                           onClick={e => {store.dispatch(clear()); store.dispatch(startGame());}}/>
+                           onClick={e => {e.target.blur(); store.dispatch(clear()); store.dispatch(startGame());}}/>
                     <input type="button"
                            className="btn btn-default"
                            value="Stop"
-                           onClick={e => {store.dispatch(stopGame());}}/>
+                           onClick={e => {e.target.blur(); store.dispatch(stopGame());}}/>
                 </div>
             </form>
         );
